@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from grab import Grab
+import urllib
 import json
 import time
 from my_functions import *
@@ -43,22 +43,21 @@ def set_time_interval():
 
 
 def get_data_from_bcs(ticket):
-    bcs_url = 'https://api.bcs.ru/udfdatafeed/v1/history?symbol=' + ticket + '&resolution=60&from=' + start_date + '&to=' + stop_date + '&token=&_='+stop_date
-    print bcs_url
-    agent_linux = 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/31.0 Iceweasel/31.8.0'
-    g1 = Grab(log_dir=".", user_agent=agent_linux, reuse_cookies=True,
-              cookies={'ASP.NET_SessionId':'gi3xsh2e3yyqfycw5mu14keu'}, debug=True)
-    g1.go(bcs_url)
-    print (g1.response.body)
+    bcs_url = 'https://api.bcs.ru/udfdatafeed/v1/history?symbol=' + ticket + \
+              '&resolution=60&from=' + start_date + '&to=' + stop_date + '&token=&_='+stop_date
+    raw_data = urllib.urlopen(bcs_url)
+    print (bcs_url)
+    data_array = json.load(raw_data)
+    return data_array
 
 
 def get_current_state(start_date, stop_date):
     # total_cache = 0
     # f1 = open('report.txt', 'a')
     for ticket in tickers.keys():
-        get_data_from_bcs(ticket)
-        print ticket
-        # stock_analize(data_json)
+        print (ticket)
+        data_json = get_data_from_bcs(ticket)
+        stock_analize(data_json)
         # tmp_summ = tickers.get(ticket) * data_json['c'][len(data_json['c']) - 1]
         # f1.write(ticket)
         # f1.write("Сумма закрытия - " + str(data_json['c'][len(data_json['c']) - 1]) + '\n')
