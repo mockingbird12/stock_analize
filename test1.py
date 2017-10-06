@@ -2,9 +2,9 @@
 
 import urllib
 import json
-import time
+import datetime
 from my_functions import *
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 #########################################################
@@ -28,6 +28,20 @@ from my_functions import *
 tickers = {'GMKN':12, 'AFLT':600, 'AFKS':3700, 'MFON':120, 'YNDX':50, 'MOEX':540, 'FEES':320000, 'UPRO':17000, 'RTKM':350, 'SBERP':200}
 
 
+def plot_graf(data, name, dates):
+    dates_text = str(datetime.datetime.fromtimestamp(float(dates[0]))) + "\n - " + str(datetime.datetime.fromtimestamp(float(dates[1])))
+    plt.title(name)
+    plt.plot(data['o'])
+    x_text = len(data['o'])
+    y_text = float(data['o'][-1])
+    plt.text(x_text, y_text, dates_text)
+    # plt.annotate(dates_text)
+    plt.xlabel(u'Время')
+    plt.ylabel(u'Стоимость')
+    plt.grid(True)
+    plt.show()
+
+
 def set_time_interval():
     year = 2017
     month = 8
@@ -42,55 +56,30 @@ def set_time_interval():
     return time.mktime(start_date)
 
 
-def get_data_from_bcs(ticket):
+def get_data_from_bcs(ticket, dates):
+    start_date = dates[0]
+    stop_date = dates[1]
     bcs_url = 'https://api.bcs.ru/udfdatafeed/v1/history?symbol=' + ticket + \
               '&resolution=60&from=' + start_date + '&to=' + stop_date + '&token=&_='+stop_date
-    raw_data = urllib.urlopen(bcs_url)
     print (bcs_url)
+    raw_data = urllib.urlopen(bcs_url)
     data_array = json.load(raw_data)
     return data_array
 
 
-def get_current_state(start_date, stop_date):
-    # total_cache = 0
-    # f1 = open('report.txt', 'a')
+def get_current_state():
+    start_date = str(set_time_interval())[:-2]
+    stop_date = str(time.time())[:-3]
+    dates = [start_date, stop_date]
     for ticket in tickers.keys():
         print (ticket)
-        data_json = get_data_from_bcs(ticket)
-        stock_analize(data_json)
-        # tmp_summ = tickers.get(ticket) * data_json['c'][len(data_json['c']) - 1]
-        # f1.write(ticket)
-        # f1.write("Сумма закрытия - " + str(data_json['c'][len(data_json['c']) - 1]) + '\n')
-        # f1.write("Сумма по бумаге - " + str(tmp_summ)+'\n')
-        # total_cache += float(tmp_summ)
-        # print total_cache
+        data_json = get_data_from_bcs(ticket, dates)
+        plot_graf(data_json, ticket, dates)
+        average_annual(data_json['c'])
+        dispersion(data_json['c'])
+        # stock_analize(data_json)
         time.sleep(2)
-    # f1.write("Общая стоимость портфеля: ")
-    # f1.write(str(total_cache))
 
 
 
-
-# plt.grid(True)
-
-start_date = str(set_time_interval())[:-2]
-stop_date = str(time.time())[:-3]
-print ("stop_date", stop_date)
-get_current_state(start_date, stop_date)
-
-# for ticket in tickers.keys():
-#     bcs_url = 'http://api.bcs.ru/udfdatafeed/v1/history?symbol=' + ticket + '&resolution=60&from=' + start_date + '&to=' + stop_date + '&token=&_=1490528109299'
-#     g1 = Grab(log_file='grab.log', connect_timeout=15)
-#     g1.go(bcs_url)
-#     print ticket
-#     summ_by_ticket(json.loads(g1.response.body))
-#     time.sleep(5)
-
-# for i in ['c', 'l', 'h', 'o']:
-#     # data_float = [float(item) for item in data_json[i]]
-#     print ('\t'+i)
-#     print ('\t',data_json[i][len(data_json[i])-1])
-# print ()
-
-#         plt.plot(data_float)
-# plt.show()
+get_current_state()
