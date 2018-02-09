@@ -8,19 +8,6 @@ import numpy
 import matplotlib.pyplot as plt
 
 
-class MyPlot():
-
-    def __init__(self, title_name, data):
-        super.__init__()
-        self.grid(True)
-        self.plot.title(title_name)
-        self.plot.plot(data)
-
-    def show(self):
-        self.plot.show()
-
-
-
 #########################################################
 # JSON:
 #       'c' - ? close закрытие
@@ -44,6 +31,7 @@ tickers = {'GMKN':12, 'AFLT':600, 'AFKS':3700, 'MFON':120, 'YNDX':50, 'MOEX':540
 
 
 def plot_graf(cur_data, name, dates):
+
     dates_text = str(datetime.datetime.fromtimestamp(float(dates[0]))) + " - " + str(datetime.datetime.fromtimestamp(float(dates[1])))
     working_array_cur = numpy.array(cur_data['o'])
     # working_array_etalon = numpy.array(etalon_data['o'])
@@ -63,18 +51,26 @@ def plot_graf(cur_data, name, dates):
     plt.grid(True)
     plt.show()
 
-
-def plot_income():
-
-    pass
-
-
 def set_time_interval():
     hours = 24
     days = 30
     stop_date = int(time.mktime(time.localtime()))
     start_date = stop_date - (3600 * hours * days)
     return str(start_date), str(stop_date)
+
+
+dates = set_time_interval()
+
+
+def plot_income(data, income_dates, name):
+    # step = int((int(dates[1]) - int(dates[0])) / 5)
+    dates_list = [time.ctime(float(one_date)) for one_date in income_dates]
+    dates_text = time.ctime(float(dates[0])) + " - " + time.ctime(float(dates[1]))
+    plt.xlabel(dates_text)
+    plt.title(name)
+    plt.plot(dates_list, data)
+    plt.grid(True)
+    plt.show()
 
 
 def get_data_from_bcs(ticket, dates):
@@ -89,14 +85,19 @@ def get_data_from_bcs(ticket, dates):
 
 
 def get_current_income():
-    dates = [set_time_interval()]
     for ticket in tickers.keys():
         print (ticket)
         data_json = get_data_from_bcs(ticket, dates)
         price_list = data_json['o']
-        total_cache = [price * tickers.get(ticket) for price in price_list]
-        # my_plot = MyPlot(ticket, total_cache)
-        # my_plot.show()
+        time_list = data_json['t']
+        cache_delta = []
+        for count in range(0, len(price_list) - 1):
+            delta = price_list[count] - price_list[count+1]
+            cache_delta.append(delta * tickers.get(ticket))
+        cache_delta.append(delta * tickers.get(ticket))
+        total_cache = [price * tickers.get(ticket) for price in cache_delta]
+        plot_income(total_cache, time_list, ticket)
+
 
 
 def get_current_state():
@@ -113,5 +114,5 @@ def get_current_state():
         time.sleep(2)
 
 
-get_current_state()
-# get_current_income()
+# get_current_state()
+get_current_income()
